@@ -75,64 +75,60 @@ function plotData(data){
     const divScatter = elements.divScatter;
 
     // Create SVG
-    const svg = createSVG(divScatter);
+    const svg = createSVG(divScatter, data);
 
     const povertyAxis = new axisData(
-        data,
         dataColumns.poverty,
         "In Poverty (%)"
     );
+    povertyAxis.setScalarMin(.9);
 
     const incomeAxis = new axisData(
-        data,
         dataColumns.income,
         "Household Income (Median)"
     );
 
     const ageAxis= new axisData(
-        data,
         dataColumns.age,
         "Age (Median)"
     );
 
     const obesityAxis = new axisData(
-        data, 
         dataColumns.obesity, 
         "Obesity (%)"
     );
+    obesityAxis.setScalarMax(1.05);
     
     const smokeAxis = new axisData(
-        data,
         dataColumns.smokes,
         "Smokes (%)"
     );
 
     const healthcareAxis = new axisData(
-        data,
         dataColumns.healthcare,
         "Lacks Healthcare (%)"
     );
     
 
     svg.addAxisX(povertyAxis);
-    svg.addAxisX(ageAxis);
-    svg.addAxisX(incomeAxis);
+    // svg.addAxisX(ageAxis);
+    // svg.addAxisX(incomeAxis);
 
-    svg.addAxisY(obesityAxis);
-    svg.addAxisY(smokeAxis);
+    // svg.addAxisY(obesityAxis);
+    // svg.addAxisY(smokeAxis);
     svg.addAxisY(healthcareAxis);
 
     svg.render(divScatter);
 }
 
-function createSVG(parentElement){
+function createSVG(parentElement, data){
     const parentDimensions = 
         parentElement.node().getBoundingClientRect();
 
     const svgWidth = parentDimensions.width;
     const svgHeight = svgWidth * .6;
 
-    return new graphSVG(svgHeight, svgWidth);
+    return new graphSVG(svgHeight, svgWidth, data);
 }
 
 init();
@@ -143,8 +139,7 @@ d3.select(window).on("resize",init);
 
 
 class axisData{
-    constructor(data, dataColumn, label) {
-        this.data = data;
+    constructor(dataColumn, label) {
         this.label = label;
         this.dataColumn = dataColumn
         this.scalerMin = 1;
@@ -159,11 +154,11 @@ class axisData{
         this.scalerMax = max;
     }
 
-    getDomain(){
+    getDomain(data){
         return [
-            d3.min(this.data, 
+            d3.min(data, 
                 row => row[this.dataColumn]) * this.scalerMin,
-            d3.max(this.data, 
+            d3.max(data, 
                 row => row[this.dataColumn]) * this.scalerMax,
         ]
     }
@@ -172,7 +167,8 @@ class axisData{
 class graphSVG{
     constructor(
         height, 
-        width
+        width,
+        data
     ){
         this.height = height,
         this.width = width,
@@ -189,6 +185,7 @@ class graphSVG{
         this.selectAxisX = 0;
         this.selectAxisY = 0;
         this.offset = 20;
+        this.data = data;
     }
 
     offsetLeft(pixels){
@@ -240,12 +237,14 @@ class graphSVG{
         this.renderChartGroup();
         this.renderAxisX();
         this.renderAxisY();
+        this.renderPoints();
     }
 
     renderContainer() {
         const svg = this.parentElement.append("svg")
             .attr("height", this.height)
-            .attr("width", this.width);
+            .attr("width", this.width)
+            .classed("chart", true);
         
         this.svgContainer = svg;
     }
@@ -261,7 +260,7 @@ class graphSVG{
         const selectedAxis = this.getSelectedAxisX();
 
         const scale = d3.scaleLinear()
-            .domain(selectedAxis.getDomain())
+            .domain(selectedAxis.getDomain(this.data))
             .range([0, this.chartWidth]);
 
         const bottomAxis = d3.axisBottom(scale);
@@ -270,6 +269,7 @@ class graphSVG{
             .attr("transform", `translate(0, ${this.chartHeight})`)
             .call(bottomAxis);
 
+        this.axisScaleX = scale;
         this.renderLabelX();
     }
 
@@ -299,14 +299,17 @@ class graphSVG{
         const selectedAxis = this.getSelectedAxisY();
 
         const scale = d3.scaleLinear()
-            .domain(selectedAxis.getDomain())
+            .domain(selectedAxis.getDomain(this.data))
             .range([this.chartHeight, 0]);
         
+
+        console.log(selectedAxis.getDomain(this.data));
         const yAxis = d3.axisLeft(scale);
 
         this.chartGroup.append("g")
             .call(yAxis);
 
+        this.axisScaleY = scale;
         this.renderLabelY();
     }
 
@@ -331,5 +334,39 @@ class graphSVG{
                 label.classed("inactive", true);
             }
         });
+    }
+
+    renderPoints(){
+        const selectedAxisX = this.getSelectedAxisX();
+        const selectedAxisY = this.getSelectedAxisY();
+
+        const xColumn = selectedAxisX.dataColumn;
+        const yColumn = selectedAxisY.dataColumn;
+
+        const scaleX = this.axisScaleX;
+        const scaleY = this.axisScaleY;
+
+        const pointsGroup = this.chartGroup.selectAll("g")
+            .data(this.data)
+            .enter()
+            .append("g")
+            .attr("transform", row =>
+            `translate(
+                ${scaleX(row[xColumn])},
+                ${scaleY(row[yColumn])}
+            )`);
+        
+        const radius = this.height / 30;
+        pointsGroup.append("circle")
+            .attr("r", radius)
+            .attr("opacity", .5)
+            .classed("stateCircle", true);
+        
+        pointsGroup.append("text")
+            .text(row => row[dataColumns.abbr])
+            .attr("text-anchor", "middle")
+            .attr("dy", radius/2)
+            .attr("font-size", radius)
+            .classed("stateText", true);
     }
 }
