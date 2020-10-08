@@ -1,4 +1,20 @@
-class graphSVG{
+/**
+ * @author @12wollmana - Aaron Wollman
+ */
+
+/**
+ * This class contains all the logic for rendering 
+ * a bubble plot using D3.js.
+ */
+class bubblePlotSVG{
+    /**
+     * @param {number} height 
+     * The SVG height.
+     * @param {number} width 
+     * The SVG width.
+     * @param {any[]} data 
+     * Data to bind to.
+     */
     constructor(
         height, 
         width,
@@ -22,44 +38,85 @@ class graphSVG{
         this.data = data;
     }
 
-    offsetLeft(pixels){
+    /**
+     * Offsets the left margin.
+     * @param {number} pixels 
+     * The number of pixels to offset.
+     */
+    offsetLeftMargin(pixels){
         this.margin.left = this.margin.left + pixels;
         this.chartWidth = this.width - this.margin.left - this.margin.right;
     }
 
-    offsetBottom(pixels){
+    /**
+     * Offsets the bottom margin.
+     * @param {number} pixels 
+     * The number of pixels to offset.
+     */
+    offsetBottomMargin(pixels){
         this.margin.bottom = this.margin.bottom + pixels;
         this.chartHeight = this.height - this.margin.top - this.margin.bottom;
     }
 
+    /**
+     * Adds an axis set to the X axis.
+     * @param {axisData} axis 
+     * The axis to add.
+     */
     addAxisX(axis){
         this.xAxisList.push(axis);
-        this.offsetBottom(this.offset/2);
+        this.offsetBottomMargin(this.offset/2);
     }
 
+    /**
+     * Adds an axis set to the Y axis.
+     * @param {axisData} axis 
+     * The axis to add.
+     */
     addAxisY(axis){
         this.yAxisList.push(axis);
-        this.offsetLeft(this.offset/2);
+        this.offsetLeftMargin(this.offset/2);
     }
 
+    /**
+     * Selects a X axis to display.
+     * @param {number} axisIndex 
+     * The index of the axis to select.
+     */
     selectAxisX(axisIndex){
         this.selectAxisX = axisIndex;
         // TODO: Redraw
     }
 
+    /**
+     * Selects a Y axis to display.
+     * @param {number} axisIndex 
+     * The index of the axis to select.
+     */
     selectAxisY(axisIndex){
         this.selectAxisY = axisIndex;
         // TODO: Redraw
     }
 
+    /**
+     * Returns the currently displayed X axis.
+     */
     getSelectedAxisX(){
         return this.xAxisList[this.selectAxisX];
     }
 
+    /**
+     * Returns the currently displayed Y axis.
+     */
     getSelectedAxisY(){
         return this.yAxisList[this.selectAxisY];
     }
 
+    /**
+     * Renders the bubble plot as an SVG.
+     * @param {any} parentElement 
+     * The parent element to display within.
+     */
     render(parentElement){
         const svgArea = parentElement.select("svg");
         if(!svgArea.empty()){
@@ -74,6 +131,9 @@ class graphSVG{
         this.renderPoints();
     }
 
+    /**
+     * Renders the SVG container
+     */
     renderContainer() {
         const svg = this.parentElement.append("svg")
             .attr("height", this.height)
@@ -83,13 +143,20 @@ class graphSVG{
         this.svgContainer = svg;
     }
 
+    /**
+     * Renders the SVG Chart Group
+     */
     renderChartGroup(){
         const chartGroup = this.svgContainer.append("g")
-            .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
+            .attr("transform", 
+            `translate(${this.margin.left}, ${this.margin.top})`);
 
         this.chartGroup = chartGroup;
     }
 
+    /**
+     * Renders the X axis.
+     */
     renderAxisX(){
         const selectedAxis = this.getSelectedAxisX();
 
@@ -107,6 +174,9 @@ class graphSVG{
         this.renderLabelX();
     }
 
+    /**
+     * Renders the labels for the X axis.
+     */
     renderLabelX(){
         const labelGroup = this.chartGroup.append("g")
             .attr("transform", `translate(${this.chartWidth / 2}, ${this.chartHeight + this.offset})`);
@@ -129,6 +199,9 @@ class graphSVG{
         });
     }
 
+    /**
+     * Renders the Y Axis.
+     */
     renderAxisY(){
         const selectedAxis = this.getSelectedAxisY();
 
@@ -145,6 +218,9 @@ class graphSVG{
         this.renderLabelY();
     }
 
+    /**
+     * Renders the labels for the Y Axis.
+     */
     renderLabelY(){
         const labelGroup = this.chartGroup.append("g");
 
@@ -168,6 +244,9 @@ class graphSVG{
         });
     }
 
+    /**
+     * Renders all of the data points as bubbles.
+     */
     renderPoints(){
         const selectedAxisX = this.getSelectedAxisX();
         const selectedAxisY = this.getSelectedAxisY();

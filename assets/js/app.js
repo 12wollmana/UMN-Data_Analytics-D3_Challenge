@@ -1,6 +1,8 @@
 /**
  * Main Application Logic
- * Aaron Wollman
+ * 
+ * @author 
+ * @12wollmana - Aaron Wollman
  */
 
 /**
@@ -75,7 +77,7 @@ function createAxisDataX(){
     return [
         povertyAxis,
         incomeAxis,
-        ageAxis,
+        ageAxis
     ];
 }
 
@@ -147,7 +149,7 @@ function createSVG(parentElement, data){
     const svgWidth = parentDimensions.width;
     const svgHeight = svgWidth * .6;
 
-    return new graphSVG(svgHeight, svgWidth, data);
+    return new bubblePlotSVG(svgHeight, svgWidth, data);
 }
 
 init();

@@ -1,4 +1,17 @@
+/**
+ * @author @12wollmana - Aaron Wollman
+ */
+
+/**
+ *  This class holds information regarding an axis.
+ */
 class axisData{
+    /**
+     * @param {string} dataColumn 
+     * The column within the data to bind the axis to.
+     * @param {string} label 
+     * The label to use for the axis.
+     */
     constructor(dataColumn, label) {
         this.label = label;
         this.dataColumn = dataColumn
@@ -6,12 +19,24 @@ class axisData{
         this.scalerMax = 1;
     }
 
-    setScalarMin(min){
-        this.scalerMin = min;
+    /**
+     * Sets a scaler value to apply to the minimum
+     * value on the axis.
+     * @param {number} scaler 
+     * The scaler value.
+     */
+    setScalarMin(scaler){
+        this.scalerMin = scaler;
     }
 
-    setScalarMax(max){
-        this.scalerMax = max;
+    /**
+     * Sets a scaler value to apply to the maximum
+     * value on the axis.
+     * @param {number} scaler 
+     * The scaler value.
+     */
+    setScalarMax(scaler){
+        this.scalerMax = scaler;
     }
 
     getDomain(data){
