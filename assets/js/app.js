@@ -301,9 +301,7 @@ class graphSVG{
         const scale = d3.scaleLinear()
             .domain(selectedAxis.getDomain(this.data))
             .range([this.chartHeight, 0]);
-        
-
-        console.log(selectedAxis.getDomain(this.data));
+         
         const yAxis = d3.axisLeft(scale);
 
         this.chartGroup.append("g")
@@ -346,7 +344,9 @@ class graphSVG{
         const scaleX = this.axisScaleX;
         const scaleY = this.axisScaleY;
 
-        const pointsGroup = this.chartGroup.selectAll("g")
+        const allPointsGroup = this.chartGroup.append("g");
+        
+        const pointGroup = allPointsGroup.selectAll("g")
             .data(this.data)
             .enter()
             .append("g")
@@ -355,17 +355,17 @@ class graphSVG{
                 ${scaleX(row[xColumn])},
                 ${scaleY(row[yColumn])}
             )`);
-        
+
         const radius = this.height / 30;
-        pointsGroup.append("circle")
+        pointGroup.append("circle")
             .attr("r", radius)
             .attr("opacity", .5)
             .classed("stateCircle", true);
         
-        pointsGroup.append("text")
+        pointGroup.append("text")
             .text(row => row[dataColumns.abbr])
             .attr("text-anchor", "middle")
-            .attr("dy", radius/2)
+            .attr("dy", radius / 2)
             .attr("font-size", radius)
             .classed("stateText", true);
     }
