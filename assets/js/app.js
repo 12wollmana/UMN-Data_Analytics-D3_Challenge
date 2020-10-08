@@ -68,11 +68,13 @@ function createAxisDataX(){
         dataColumns.income,
         "Household Income (Median)"
     );
+    incomeAxis.setScalarMin(.9);
 
     const ageAxis= new axisData(
         dataColumns.age,
         "Age (Median)"
     );
+    ageAxis.setScalarMin(.9);
 
     return [
         povertyAxis,
@@ -96,6 +98,7 @@ function createAxisDataY(){
         dataColumns.smokes,
         "Smokes (%)"
     );
+    smokeAxis.setScalarMin(.8);
 
     const healthcareAxis = new axisData(
         dataColumns.healthcare,

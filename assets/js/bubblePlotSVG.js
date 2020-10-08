@@ -36,6 +36,7 @@ class bubblePlotSVG{
         this.selectAxisY = 0;
         this.offset = 20;
         this.data = data;
+        this.transitionDuration = 750;
     }
 
     /**
@@ -65,7 +66,7 @@ class bubblePlotSVG{
      */
     addAxisX(axis){
         this.xAxisList.push(axis);
-        this.offsetBottomMargin(this.offset/2);
+        this.offsetBottomMargin( this.offset/2 );
     }
 
     /**
@@ -83,9 +84,28 @@ class bubblePlotSVG{
      * @param {number} axisIndex 
      * The index of the axis to select.
      */
-    selectAxisX(axisIndex){
+    updateAxisX(axisIndex){
+        this.xAxisGroup
+            .transition()
+            .duration(this.transitionDuration / 2)
+            .style("opacity", 0);
+
         this.selectAxisX = axisIndex;
-        // TODO: Redraw
+
+        setTimeout(() => {
+            this.renderAxisX();
+        }, this.transitionDuration / 2);
+
+        this.renderPoints();
+
+        const labels = this.xLabelGroup.selectAll("text");
+        labels
+            .classed("active", (_d, index)=>{
+                return index == this.selectAxisX;
+            })
+            .classed("inactive", (_d, index)=>{
+                return index != this.selectAxisX;
+            });
     }
 
     /**
@@ -93,9 +113,28 @@ class bubblePlotSVG{
      * @param {number} axisIndex 
      * The index of the axis to select.
      */
-    selectAxisY(axisIndex){
+    updateAxisY(axisIndex){
+        this.yAxisGroup
+            .transition()
+            .duration(this.transitionDuration / 2)
+            .style("opacity", 0);
+        
         this.selectAxisY = axisIndex;
-        // TODO: Redraw
+        setTimeout(() => {
+            this.renderAxisY();
+        }, this.transitionDuration / 2);
+
+        this.renderPoints();
+
+        const labels = this.yLabelGroup.selectAll("text");
+        labels
+            .classed("active", (_d, index)=>{
+                console.log(index, this.selectAxisY);
+                return index == this.selectAxisY;
+            })
+            .classed("inactive", (_d, index)=>{
+                return index != this.selectAxisY;
+            });
     }
 
     /**
@@ -126,8 +165,16 @@ class bubblePlotSVG{
 
         this.renderContainer();
         this.renderChartGroup();
+
+        this.initAxisX();
         this.renderAxisX();
+        this.renderLabelX();
+
+        this.initAxisY();
         this.renderAxisY();
+        this.renderLabelY();
+
+        this.initPoints();
         this.renderPoints();
     }
 
@@ -155,23 +202,43 @@ class bubblePlotSVG{
     }
 
     /**
-     * Renders the X axis.
+     * Gets the X axis scale.
      */
-    renderAxisX(){
+    getScaleX(){
         const selectedAxis = this.getSelectedAxisX();
 
         const scale = d3.scaleLinear()
             .domain(selectedAxis.getDomain(this.data))
             .range([0, this.chartWidth]);
 
+        return scale;
+    }
+
+    /**
+     * Initializes the X axis.
+     */
+    initAxisX(){
+        this.xAxisGroup = this.chartGroup.append("g")
+            .attr("transform", `translate(0, ${this.chartHeight})`);
+    }
+
+    /**
+     * Renders the X axis.
+     */
+    renderAxisX(){
+        const scale = this.getScaleX();
+
         const bottomAxis = d3.axisBottom(scale);
-
-        this.chartGroup.append("g")
-            .attr("transform", `translate(0, ${this.chartHeight})`)
+        this.xAxisGroup
+            .style("opacity", 0)
             .call(bottomAxis);
-
+        
+        this.xAxisGroup
+            .transition()
+            .duration(this.transitionDuration / 2)
+            .style("opacity", 1);
+        
         this.axisScaleX = scale;
-        this.renderLabelX();
     }
 
     /**
@@ -196,26 +263,59 @@ class bubblePlotSVG{
                 label.classed("active", false);
                 label.classed("inactive", true);
             }
+
+            label.on("click", (_d, i, nodes) =>{
+                const label = d3.select(nodes[i]);
+                const value = label.attr("value");
+
+                if(value != this.selectAxisX)
+                {
+                    this.updateAxisX(value);
+                }
+            });
         });
+
+        this.xLabelGroup = labelGroup;
+    }
+
+    /**
+     * Initializes the Y axis.
+     */
+    initAxisY(){
+        this.yAxisGroup = this.chartGroup.append("g");
+    }
+
+    /**
+     * Gets the Y axis scale.
+     */
+    getScaleY(){
+        const selectedAxis = this.getSelectedAxisY();
+
+        const scale = d3.scaleLinear()
+            .domain(selectedAxis.getDomain(this.data))
+            .range([this.chartHeight, 0]);
+
+        return scale;
     }
 
     /**
      * Renders the Y Axis.
      */
     renderAxisY(){
-        const selectedAxis = this.getSelectedAxisY();
-
-        const scale = d3.scaleLinear()
-            .domain(selectedAxis.getDomain(this.data))
-            .range([this.chartHeight, 0]);
+        const scale = this.getScaleY();
          
         const yAxis = d3.axisLeft(scale);
 
-        this.chartGroup.append("g")
+        this.yAxisGroup
+            .style("opacity", 0)
             .call(yAxis);
 
+        this.yAxisGroup
+            .transition()
+            .duration(this.transitionDuration / 2)
+            .style("opacity", 1);
+
         this.axisScaleY = scale;
-        this.renderLabelY();
     }
 
     /**
@@ -241,7 +341,33 @@ class bubblePlotSVG{
                 label.classed("active", false);
                 label.classed("inactive", true);
             }
+
+            label.on("click", (_d, i, nodes) =>{
+                const label = d3.select(nodes[i]);
+                const value = label.attr("value");
+                
+                if(value != this.selectAxisY)
+                {
+                    this.updateAxisY(value);
+                }
+            });
         });
+
+        this.yLabelGroup = labelGroup;
+    }
+
+    /**
+     * Initializes the data points.
+     */
+    initPoints(){
+        const allPointsGroup = this.chartGroup.append("g");
+        
+        const pointGroup = allPointsGroup.selectAll("g")
+            .data(this.data)
+            .enter()
+            .append("g")
+        
+        this.pointGroup = pointGroup;
     }
 
     /**
@@ -254,15 +380,13 @@ class bubblePlotSVG{
         const xColumn = selectedAxisX.dataColumn;
         const yColumn = selectedAxisY.dataColumn;
 
-        const scaleX = this.axisScaleX;
-        const scaleY = this.axisScaleY;
+        const scaleX = this.getScaleX();
+        const scaleY = this.getScaleY();
 
-        const allPointsGroup = this.chartGroup.append("g");
+        const pointGroup = this.pointGroup;
         
-        const pointGroup = allPointsGroup.selectAll("g")
-            .data(this.data)
-            .enter()
-            .append("g")
+        pointGroup.transition()
+            .duration(this.transitionDuration)
             .attr("transform", row =>
             `translate(
                 ${scaleX(row[xColumn])},
@@ -281,5 +405,37 @@ class bubblePlotSVG{
             .attr("dy", radius / 2)
             .attr("font-size", radius)
             .classed("stateText", true);
+        
+        const tooltip = this.renderTooltip();
+        pointGroup.on("mouseover", tooltip.show);
+        pointGroup.on("mouseout", tooltip.hide);
+        pointGroup.call(tooltip);
+    }
+
+    /**
+     * Renders the tooltip for each data point.
+     */
+    renderTooltip(){
+        return d3.tip()
+            .attr("class", "d3-tip")
+            .html(d => {
+                const state = d[dataColumns.state];
+
+                const xAxis = this.getSelectedAxisX();
+                const xLabel = xAxis.label;
+                const xValue = d[xAxis.dataColumn];
+
+                const yAxis = this.getSelectedAxisY();
+                const yLabel = yAxis.label;
+                const yValue = d[yAxis.dataColumn];
+
+                return (`
+                <strong>${state}</strong>
+                <hr>
+                ${xLabel}: ${xValue}
+                <br>
+                ${yLabel}: ${yValue}
+                `);
+            });
     }
 }

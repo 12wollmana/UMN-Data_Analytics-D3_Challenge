@@ -52,6 +52,13 @@
   border-radius: 4px;
 }
 
+.d3-tip hr{
+  border-top: #fff solid;
+  margin: 0;
+  margin-bottom: .1rem;
+  padding: 0;
+}
+
 /* Mobile Rules */
 @media screen and (max-width: 530px) {
   .stateText {

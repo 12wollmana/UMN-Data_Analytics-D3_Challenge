@@ -39,6 +39,12 @@ class axisData{
         this.scalerMax = scaler;
     }
 
+    /**
+     * Calculates the domain (max and min values)
+     * for the axis.
+     * @param {any[]} data 
+     * The data to get the domain of.
+     */
     getDomain(data){
         return [
             d3.min(data, 
