@@ -1,13 +1,26 @@
 /**
+ * Main Application Logic
  * Aaron Wollman
+ */
+
+/**
+ * Initializes the application
  */
 async function init() {
     const data = await getData(filepaths.dataCSV);
     console.log(data);
 
-    plotData(data);
+    const xAxisData = createAxisDataX();
+    const yAxisData = createAxisDataY();
+
+    plotData(data, xAxisData, yAxisData);
 }
 
+/**
+ * Parses the data from a CSV.
+ * @param {string} filepath 
+ * The filepath for the data. Should be a CSV.
+ */
 async function getData(filepath) {
     let data = await d3.csv(filepath);
 
@@ -39,13 +52,10 @@ async function getData(filepath) {
     return data;
 }
 
-function plotData(data){
-    // Get parent container dimensions
-    const divScatter = elements.divScatter;
-
-    // Create SVG
-    const svg = createSVG(divScatter, data);
-
+/**
+ * Creates an array of X axis datasets to display.
+ */
+function createAxisDataX(){
     const povertyAxis = new axisData(
         dataColumns.poverty,
         "In Poverty (%)"
@@ -62,12 +72,24 @@ function plotData(data){
         "Age (Median)"
     );
 
+    return [
+        povertyAxis,
+        incomeAxis,
+        ageAxis,
+    ];
+}
+
+/**
+ * Creates an array of Y axis datasets to display.
+ */
+function createAxisDataY(){
     const obesityAxis = new axisData(
         dataColumns.obesity, 
         "Obesity (%)"
     );
+    obesityAxis.setScalarMin(.9);
     obesityAxis.setScalarMax(1.05);
-    
+
     const smokeAxis = new axisData(
         dataColumns.smokes,
         "Smokes (%)"
@@ -78,18 +100,46 @@ function plotData(data){
         "Lacks Healthcare (%)"
     );
     healthcareAxis.setScalarMin(.5);
-    
-    svg.addAxisX(povertyAxis);
-    //svg.addAxisX(ageAxis);
-    // svg.addAxisX(incomeAxis);
 
-    // svg.addAxisY(obesityAxis);
-    // svg.addAxisY(smokeAxis);
-    svg.addAxisY(healthcareAxis);
+    return [
+        obesityAxis,
+        smokeAxis,
+        healthcareAxis
+    ];
+}
+
+/**
+
+ */
+/**
+ * Creates and displays a bubble plot.
+ * @param {any[]} data 
+ * The data to plot.
+ * @param {axisData[]} xAxisData 
+ * The X axis data.
+ * @param {axisData[]} yAxisData 
+ * The Y axis data.
+ */
+function plotData(data, xAxisData, yAxisData){
+    // Get parent container dimensions
+    const divScatter = elements.divScatter;
+
+    // Create SVG
+    const svg = createSVG(divScatter, data);
+    
+    xAxisData.forEach(axis => svg.addAxisX(axis));
+    yAxisData.forEach(axis => svg.addAxisY(axis));
 
     svg.render(divScatter);
 }
 
+/**
+ * Creates an SVG using the parent element's dimensions.
+ * @param {any} parentElement 
+ * The parent element to append the SVG to.
+ * @param {any[]} data
+ * The data to bind the SVG to. 
+ */
 function createSVG(parentElement, data){
     const parentDimensions = 
         parentElement.node().getBoundingClientRect();
@@ -102,4 +152,4 @@ function createSVG(parentElement, data){
 
 init();
 
-d3.select(window).on("resize",init);
+d3.select(window).on("resize", init);
