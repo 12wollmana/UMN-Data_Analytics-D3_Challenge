@@ -36,7 +36,7 @@ class bubblePlotSVG{
         this.selectAxisY = 0;
         this.offset = 20;
         this.data = data;
-        this.transitionDuration = 750;
+        this.transitionDuration = 1000;
     }
 
     /**
