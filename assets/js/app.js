@@ -13,7 +13,7 @@ async function init() {
     const xAxisData = createAxisDataX();
     const yAxisData = createAxisDataY();
 
-    plotData(data, xAxisData, yAxisData);
+    createBubblePlot(data, xAxisData, yAxisData);
 }
 
 /**
@@ -120,7 +120,7 @@ function createAxisDataY(){
  * @param {axisData[]} yAxisData 
  * The Y axis data.
  */
-function plotData(data, xAxisData, yAxisData){
+function createBubblePlot(data, xAxisData, yAxisData){
     // Get parent container dimensions
     const divScatter = elements.divScatter;
 
