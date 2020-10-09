@@ -5,6 +5,8 @@
  * @12wollmana - Aaron Wollman
  */
 
+let bubbleChart;
+
 /**
  * Initializes the application
  */
@@ -130,31 +132,16 @@ function createBubblePlot(data, xAxisData, yAxisData){
     const divScatter = elements.divScatter;
 
     // Create SVG
-    const svg = createSVG(divScatter, data);
+    bubbleChart= new bubblePlotSVG(divScatter, data);
     
-    xAxisData.forEach(axis => svg.addAxisX(axis));
-    yAxisData.forEach(axis => svg.addAxisY(axis));
+    xAxisData.forEach(axis => bubbleChart.addAxisX(axis));
+    yAxisData.forEach(axis => bubbleChart.addAxisY(axis));
 
-    svg.render(divScatter);
-}
-
-/**
- * Creates an SVG using the parent element's dimensions.
- * @param {any} parentElement 
- * The parent element to append the SVG to.
- * @param {any[]} data
- * The data to bind the SVG to. 
- */
-function createSVG(parentElement, data){
-    const parentDimensions = 
-        parentElement.node().getBoundingClientRect();
-
-    const svgWidth = parentDimensions.width;
-    const svgHeight = svgWidth * .6;
-
-    return new bubblePlotSVG(svgHeight, svgWidth, data);
+    bubbleChart.render(true);
 }
 
 init();
 
-d3.select(window).on("resize", init);
+d3.select(window).on("resize", ()=>{
+    bubbleChart.render(false);
+});

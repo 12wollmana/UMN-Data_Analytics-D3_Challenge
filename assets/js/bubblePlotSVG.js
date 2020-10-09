@@ -16,12 +16,33 @@ class bubblePlotSVG{
      * Data to bind to.
      */
     constructor(
-        height, 
-        width,
+        parentElement,
         data
     ){
-        this.height = height,
-        this.width = width,
+        this.parentElement = parentElement;
+        this.xAxisList = [];
+        this.yAxisList = [];
+        this.selectAxisX = 0;
+        this.selectAxisY = 0;
+        this.offset = 20;
+        this.data = data;
+        this.transitionDuration = 1000;
+        this.resetDimensions();
+    }
+
+    calcWidth(){
+        const parentDimensions = 
+            this.parentElement.node().getBoundingClientRect();
+        return parentDimensions.width;
+    }
+    
+    calcHeight(){
+        return this.width * .6;
+    }
+
+    resetDimensions(){
+        this.width = this.calcWidth();
+        this.height = this.calcHeight();
         this.margin = {
             top: 60,
             right: 60,
@@ -30,13 +51,8 @@ class bubblePlotSVG{
         };
         this.chartHeight = this.height - this.margin.top - this.margin.bottom;
         this.chartWidth = this.width - this.margin.left - this.margin.right;
-        this.xAxisList = [];
-        this.yAxisList = [];
-        this.selectAxisX = 0;
-        this.selectAxisY = 0;
-        this.offset = 20;
-        this.data = data;
-        this.transitionDuration = 1000;
+        this.offsetLeftMargin(this.xAxisList.length * this.offset);
+        this.offsetBottomMargin(this.yAxisList.length * this.offset);
     }
 
     /**
@@ -84,19 +100,26 @@ class bubblePlotSVG{
      * @param {number} axisIndex 
      * The index of the axis to select.
      */
-    updateAxisX(axisIndex){
-        this.xAxisGroup
-            .transition()
-            .duration(this.transitionDuration / 2)
-            .style("opacity", 0);
+    updateAxisX(axisIndex, showAnimations){
+        if(showAnimations){
+            this.xAxisGroup
+                .transition()
+                .duration(this.transitionDuration / 2)
+                .style("opacity", 0);
+        }
 
         this.selectAxisX = axisIndex;
 
-        setTimeout(() => {
-            this.renderAxisX();
-        }, this.transitionDuration / 2);
-
-        this.renderPoints();
+        if(showAnimations){
+            setTimeout(() => {
+                this.renderAxisX(true);
+            }, this.transitionDuration / 2);
+        }
+        else {
+            this.renderAxisX(false);
+        }
+        
+        this.renderPoints(showAnimations);
 
         const labels = this.xLabelGroup.selectAll("text");
         labels
@@ -113,18 +136,27 @@ class bubblePlotSVG{
      * @param {number} axisIndex 
      * The index of the axis to select.
      */
-    updateAxisY(axisIndex){
-        this.yAxisGroup
-            .transition()
-            .duration(this.transitionDuration / 2)
-            .style("opacity", 0);
+    updateAxisY(axisIndex, showAnimations){
+        if(showAnimations){
+            this.yAxisGroup
+                .transition()
+                .duration(this.transitionDuration / 2)
+                .style("opacity", 0);
+        }
+        
         
         this.selectAxisY = axisIndex;
-        setTimeout(() => {
-            this.renderAxisY();
-        }, this.transitionDuration / 2);
 
-        this.renderPoints();
+        if(showAnimations){
+            setTimeout(() => {
+                this.renderAxisY(true);
+            }, this.transitionDuration / 2);
+        }
+        else {
+            this.renderAxisY(false);
+        }
+        
+        this.renderPoints(showAnimations);
 
         const labels = this.yLabelGroup.selectAll("text");
         labels
@@ -156,26 +188,26 @@ class bubblePlotSVG{
      * @param {any} parentElement 
      * The parent element to display within.
      */
-    render(parentElement){
-        const svgArea = parentElement.select("svg");
+    render(showAnimations = false){
+        const svgArea = this.parentElement.select("svg");
         if(!svgArea.empty()){
             svgArea.remove();
         }
-        this.parentElement = parentElement;
+        this.resetDimensions();
 
         this.renderContainer();
         this.renderChartGroup();
 
         this.initAxisX();
-        this.renderAxisX();
+        this.renderAxisX(showAnimations);
         this.renderLabelX();
 
         this.initAxisY();
-        this.renderAxisY();
+        this.renderAxisY(showAnimations);
         this.renderLabelY();
 
         this.initPoints();
-        this.renderPoints();
+        this.renderPoints(showAnimations);
     }
 
     /**
@@ -225,18 +257,20 @@ class bubblePlotSVG{
     /**
      * Renders the X axis.
      */
-    renderAxisX(){
+    renderAxisX(showAnimations){
         const scale = this.getScaleX();
 
         const bottomAxis = d3.axisBottom(scale);
-        this.xAxisGroup
-            .style("opacity", 0)
-            .call(bottomAxis);
+        if(showAnimations){
+            this.xAxisGroup
+                .style("opacity", 0);
         
-        this.xAxisGroup
-            .transition()
-            .duration(this.transitionDuration / 2)
-            .style("opacity", 1);
+            this.xAxisGroup
+                .transition()
+                .duration(this.transitionDuration / 2)
+                .style("opacity", 1);
+        }
+        this.xAxisGroup.call(bottomAxis);
         
         this.axisScaleX = scale;
     }
@@ -255,7 +289,7 @@ class bubblePlotSVG{
                 .attr("value", index)
                 .text(axis.label);
 
-            if(index === this.selectAxisX){
+            if(index == this.selectAxisX){
                 label.classed("active", true);
                 label.classed("inactive", false);
             }
@@ -270,7 +304,7 @@ class bubblePlotSVG{
 
                 if(value != this.selectAxisX)
                 {
-                    this.updateAxisX(value);
+                    this.updateAxisX(value, true);
                 }
             });
         });
@@ -301,19 +335,21 @@ class bubblePlotSVG{
     /**
      * Renders the Y Axis.
      */
-    renderAxisY(){
+    renderAxisY(showAnimations){
         const scale = this.getScaleY();
          
         const yAxis = d3.axisLeft(scale);
 
-        this.yAxisGroup
-            .style("opacity", 0)
-            .call(yAxis);
+        if(showAnimations){
+            this.yAxisGroup
+                .style("opacity", 0);
 
-        this.yAxisGroup
-            .transition()
-            .duration(this.transitionDuration / 2)
-            .style("opacity", 1);
+            this.yAxisGroup
+                .transition()
+                .duration(this.transitionDuration / 2)
+                .style("opacity", 1);
+        }
+        this.yAxisGroup.call(yAxis);
 
         this.axisScaleY = scale;
     }
@@ -333,7 +369,7 @@ class bubblePlotSVG{
                 .attr("value", index)
                 .text(axis.label);
 
-            if(index === this.selectAxisY){
+            if(index == this.selectAxisY){
                 label.classed("active", true);
                 label.classed("inactive", false);
             }
@@ -348,7 +384,7 @@ class bubblePlotSVG{
                 
                 if(value != this.selectAxisY)
                 {
-                    this.updateAxisY(value);
+                    this.updateAxisY(value, true);
                 }
             });
         });
@@ -373,7 +409,7 @@ class bubblePlotSVG{
     /**
      * Renders all of the data points as bubbles.
      */
-    renderPoints(){
+    renderPoints(showAnimations){
         const selectedAxisX = this.getSelectedAxisX();
         const selectedAxisY = this.getSelectedAxisY();
 
@@ -385,13 +421,24 @@ class bubblePlotSVG{
 
         const pointGroup = this.pointGroup;
         
-        pointGroup.transition()
-            .duration(this.transitionDuration)
-            .attr("transform", row =>
-            `translate(
-                ${scaleX(row[xColumn])},
-                ${scaleY(row[yColumn])}
-            )`);
+        if(showAnimations){
+            pointGroup.transition()
+                .duration(this.transitionDuration)
+                .attr("transform", row =>
+                `translate(
+                    ${scaleX(row[xColumn])},
+                    ${scaleY(row[yColumn])}
+                )`);
+        } 
+        else {
+            pointGroup
+                .attr("transform", row =>
+                `translate(
+                    ${scaleX(row[xColumn])},
+                    ${scaleY(row[yColumn])}
+                )`);
+        }
+        
 
         const radius = this.height / 30;
         pointGroup.append("circle")
