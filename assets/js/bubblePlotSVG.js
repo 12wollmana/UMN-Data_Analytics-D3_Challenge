@@ -37,7 +37,7 @@ class bubblePlotSVG{
     }
     
     calcHeight(){
-        return this.width * .6;
+        return this.width * .7;
     }
 
     resetDimensions(){
@@ -450,10 +450,10 @@ class bubblePlotSVG{
         }
         
 
-        const radius = this.height / 30;
+        const radius = this.height / 50;
         pointGroup.append("circle")
             .attr("r", radius)
-            .attr("opacity", .5)
+            .attr("opacity", .75)
             .classed("stateCircle", true);
         
         pointGroup.append("text")
