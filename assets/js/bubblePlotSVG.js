@@ -99,6 +99,8 @@ class bubblePlotSVG{
      * Selects a X axis to display.
      * @param {number} axisIndex 
      * The index of the axis to select.
+     * @param {boolean} showAnimations 
+     * Whether to display transistional animations.
      */
     updateAxisX(axisIndex, showAnimations){
         if(showAnimations){
@@ -135,6 +137,8 @@ class bubblePlotSVG{
      * Selects a Y axis to display.
      * @param {number} axisIndex 
      * The index of the axis to select.
+     * @param {boolean} showAnimations 
+     * Whether to display transistional animations.
      */
     updateAxisY(axisIndex, showAnimations){
         if(showAnimations){
@@ -185,8 +189,8 @@ class bubblePlotSVG{
 
     /**
      * Renders the bubble plot as an SVG.
-     * @param {any} parentElement 
-     * The parent element to display within.
+     * @param {boolean} showAnimations 
+     * Whether to display transistional animations.
      */
     render(showAnimations = false){
         const svgArea = this.parentElement.select("svg");
@@ -256,6 +260,8 @@ class bubblePlotSVG{
 
     /**
      * Renders the X axis.
+     * @param {boolean} showAnimations 
+     * Whether to display transistional animations.
      */
     renderAxisX(showAnimations){
         const scale = this.getScaleX();
@@ -334,6 +340,8 @@ class bubblePlotSVG{
 
     /**
      * Renders the Y Axis.
+     * @param {boolean} showAnimations 
+     * Whether to display transistional animations.
      */
     renderAxisY(showAnimations){
         const scale = this.getScaleY();
@@ -408,6 +416,8 @@ class bubblePlotSVG{
 
     /**
      * Renders all of the data points as bubbles.
+     * @param {boolean} showAnimations 
+     * Whether to display transistional animations.
      */
     renderPoints(showAnimations){
         const selectedAxisX = this.getSelectedAxisX();
